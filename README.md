@@ -1,260 +1,200 @@
-# Final Practicum CSCI 3155 Summer 2024 (language testing)
-Welcome to the CSCI 3155 Summer 2024 final practicum. In this exercise you will work on teams to design, develop and test a small domain specific language (DSL) to the specification provided. Throughout this practicum, if you have questions, you are actively encouraged to ask the course staff. The document below lists "**`minimum`**" features for your language. You are of course welcome to create a more complex language than what is described below.
+### README.md
 
-## Language Design
-Your language design team has defined an operational semantic to the following specification. Your task is to review the specification and author extensive test for the intended semantic.
+# Emoticon Language Interpreter
 
-A language with:
-* at least 5 emoticons
-    * At least one emoticon must be happy
-* Either 
-    * A collection of expressions (e.g. list) 
-    * The ability to define and use variables 
-    * AND/OR
-    * The ability to define and call functions
-* 3 operations
+## Overview
+
+This project implements an interpreter for a simple language that uses emoticons as values and supports basic operations on these emoticons. The language supports expressions, lists of expressions, and a set of operations (`Plus`, `Not`, and `Count`). The interpreter is implemented in Scala and includes a comprehensive suite of tests.
+
+## Language Specification
 
 ### Concrete Syntax
 
-$$\begin{array}{rrll}
-e & \Rightarrow & v \\
-& | & (e) \\
-& | & [\; e\color{red}{*}\; ] & \texttt{a list of 0-or-many expressions}\\
-& | & e_1 + e_2 \\
-& | & ! e_1 \\
-& | & e_1\; count\; e_2 \\
-\\
-v & \Rightarrow & T.T \\
-& | & :) \\
-& | & UwU \\
-& | & -.-\; zzZ \\
-& | & \circ\; . \circ \\
-& | & [\; v\color{red}{*}\; ] & \texttt{a list of 0-or-many values}\\
-\end{array}$$
+```plaintext
+e ::= v
+    | (e)
+    | [ e* ]       // a list of 0-or-many expressions
+    | e1 + e2
+    | ! e1
+    | e1 count e2
+
+v ::= T.T
+    | :)
+    | UwU
+    | -.- zzZ
+    | \circ . \circ
+    | [ v* ]       // a list of 0-or-many values
+```
 
 ### Abstract Syntax
 
-$$\begin{array}{rrll}
-Expr & \Rightarrow & Value \\
-& | & ManyExprs(Expr\color{red}{*}) & \;[\; e\color{red}{*}\; ] \\
-& | & Plus(Expr_1,\; Expr_2) & e_1 + e_2 \\
-& | & Not(Expr_1) & ! e_1 \\
-& | & Count(Expr_1,\; Expr_2) & e_1\; count\; e_2 \\
-\\
-Value & \Rightarrow & Cry & T.T \\
-& | & Happy & :) \\
-& | & VeryHappy & UwU \\
-& | & Sleepy & -.-\; zzZ \\
-& | & Stun & \circ\; . \circ \\
-& | & ManyVals(Value\color{red}{*}) & \;[\; v\color{red}{*}\; ] \\
-\end{array}$$
+```plaintext
+Expr ::= Value
+       | ManyExprs(Expr*)
+       | Plus(Expr1, Expr2)
+       | Not(Expr1)
+       | Count(Expr1, Expr2)
 
-### Judgment Form(s)
-* eval(e) = v
+Value ::= Cry        // T.T
+        | Happy      // :)
+        | VeryHappy  // UwU
+        | Sleepy     // -.- zzZ
+        | Stun       // \circ . \circ
+        | ManyVals(Value*)
+```
 
-### Inference Rules
+### Evaluation Rules
 
-#### Values
-$$\begin{array}{c}
-\\ \hline
-eval(v) = v
-\end{array}\texttt{( eval-value )}$$
-<br /><br /><br />
+The evaluation rules define how expressions are evaluated to produce values. Some key rules include:
 
-#### ManyExprs
-$$\begin{array}{c}
-\forall\; i \in [1, n]
-,\;\;\;
-eval(e_i) = v_i
-,\;\;\;
-v_i \neq ERROR
-\\ \hline
-eval(ManyExprs(e_1,\; \dots,\; e_n)) = MayVals(v_1,\; \dots,\; v_n)
-\end{array}\texttt{( eval-many-exprs )}$$
-<br /><br /><br />
+- `eval(v) = v`
+- `eval(ManyExprs(e1, ..., en)) = ManyVals(v1, ..., vn)` if all `ei` evaluate to `vi`
+- `eval(Plus(e1, e2))` follows specific rules based on the values of `e1` and `e2`
+- `eval(Not(e1))` toggles certain values
+- `eval(Count(e1, e2))` is not implemented and will raise an exception
 
-$$\begin{array}{c}
-\exists \; i \in [1, n]
-,\;\;\;
-eval(e_i) = ERROR
-\\ \hline
-eval(ManyExprs(e_1,\; \dots,\; e_n)) = ERROR
-\end{array}\texttt{( eval-many-exprs-error )}$$
-<br /><br /><br />
+## Code Explanation
 
-#### Plus
-$$\begin{array}{c}
-eval(e_{left}) = MayVals(v_1,\; \dots,\; v_n)
-,\;\;\;
-eval(e_{right}) = v_{right}
-\\
-\forall\; i \in [1, n]
-,\;\;\;
-eval(Plus(v_i, v_{right})) = v_i^{new}
-,\;\;\;
-v_i^{new} \neq ERROR
-\\ \hline
-eval(Plus(e_{left},\; e_{right})) = MayVals(v_1^{new},\; \dots,\; v_n^{new})
-\end{array}\texttt{( eval-plus-many-values )}$$
-<br /><br /><br />
+### Abstract Syntax Implementation
 
-$$\begin{array}{c}
-eval(e_{left}) = MayVals(v_1,\; \dots,\; v_n)
-,\;\;\;
-eval(e_{right}) = v_{right}
-\\
-\exists\; i \in [1, n]
-,\;\;\;
-eval(Plus(v_i, v_{right})) = ERROR
-\\ \hline
-eval(Plus(e_{left},\; e_{right})) = ERROR
-\end{array}\texttt{( eval-plus-many-values-error )}$$
-<br /><br /><br />
+The abstract syntax is implemented using Scala case classes and traits. Here's a brief overview:
 
-$$\begin{array}{c}
-eval(e_1) = VeryHappy
-\\ \hline
-eval(Plus(e_1,\; e_2)) = VeryHappy
-\end{array}\texttt{( eval-stay-uwu )}$$
-<br /><br /><br />
+- `Expr` is the base trait for all expressions.
+- `Value` is a trait extending `Expr` and represents emoticon values.
+- `ManyExprs` represents a list of expressions.
+- `Plus`, `Not`, and `Count` represent the operations.
 
-$$\begin{array}{c}
-eval(e_2) = VeryHappy
-\\ \hline
-eval(Plus(e_1,\; e_2)) = VeryHappy
-\end{array}\texttt{( eval-become-uwu )}$$
-<br /><br /><br />
+### Evaluation Method
 
-$$\begin{array}{c}
-eval(e_1) = Cry
-,\;\;\;
-eval(e_2) = v_2
-\\ \hline
-eval(Plus(e_1,\; e_2)) = v_2
-\end{array}\texttt{( eval-move-on )}$$
-<br /><br /><br />
+Each `Expr` has an `eval` method that evaluates the expression according to the specified rules:
 
-$$\begin{array}{c}
-eval(e_1) = v_1
-,\;\;\;
-v_1 \in \{\; Happy,\; Stun\; \}
-,\;\;\;
-eval(e_2) = Cry
-\\ \hline
-eval(Plus(e_1,\; e_2)) = Cry
-\end{array}\texttt{( eval-hard-day )}$$
-<br /><br /><br />
+- **Value**: Returns itself.
+- **ManyExprs**: Evaluates each expression in the list and returns a `ManyVals` containing the results.
+- **Plus**: Evaluates `e1` and `e2`, then applies specific rules based on their values.
+- **Not**: Toggles the value of `e1` based on specific rules.
+- **Count**: Not implemented and raises an exception.
 
-$$\begin{array}{c}
-eval(e_1) = v_1
-,\;\;\;
-v_1 \notin ERROR
-,\;\;\;
-eval(e_2) = v_2
-,\;\;\;
-v_2 \notin \{\; VeryHappy,\; Cry\; \}
-\\ \hline
-eval(Plus(e_1,\; e_2)) = v_1
-\end{array}\texttt{( eval-meh )}$$
-<br /><br /><br />
+### Example Code
 
-#### Not
-$$\begin{array}{c}
-eval(e_1) = Stun
-\\ \hline
-eval(Not(e_1)) = Sleepy
-\end{array}\texttt{( eval-not-stun )}$$
-<br /><br /><br />
+Here's a snippet of the abstract syntax implementation:
 
-$$\begin{array}{c}
-eval(e_1) = Sleepy
-\\ \hline
-eval(Not(e_1)) = Stun
-\end{array}\texttt{( eval-not-sleepy )}$$
-<br /><br /><br />
+```scala
+sealed trait Expr {
+  def eval: Value = {
+    this match {
+      case v: Value => v
+      case ManyExprs(lst) => 
+        val evaledList = lst.map(_.eval)
+        if (evaledList.contains(ErrorValue)) ErrorValue else ManyVals(evaledList)
+      case Plus(e1, e2) => 
+        val v1 = e1.eval
+        val v2 = e2.eval
+        (v1, v2) match {
+          case (ManyVals(lst), ManyVals(lst2)) => throw new RuntimeException("Cannot add ManyVals to ManyVals")
+          case (ManyVals(lst), _) => 
+            val evaledList = lst.map(x => Plus(x, v2).eval)
+            if (evaledList.contains(ErrorValue)) ErrorValue else ManyVals(evaledList)
+          case (_, ManyVals(lst)) => 
+            val evaledList = lst.map(x => Plus(v1, x).eval)
+            if (evaledList.contains(ErrorValue)) ErrorValue else ManyVals(evaledList)
+          case (VeryHappy, _) => VeryHappy
+          case (_, VeryHappy) => VeryHappy
+          case (Cry, _) => v2
+          case (Happy, Cry) => Cry
+          case (Stun, Cry) => Cry
+          case (v1, v2) if v1 != Cry && v1 != VeryHappy && v2 != Cry && v2 != VeryHappy => v1
+          case _ => ErrorValue
+        }
+      case Not(e) => 
+        val v = e.eval
+        v match {
+          case Stun => Sleepy
+          case Sleepy => Stun
+          case Happy => Cry
+          case VeryHappy => Cry
+          case Cry => VeryHappy
+          case ManyVals(lst) => 
+            if (lst.length < 2) ErrorValue
+            else lst.tail.foldLeft(lst.head) {(acc, elem) => Plus(acc, elem).eval}
+          case _ => ErrorValue
+        }
+      case Count(e1, e2) => throw new RuntimeException("There is no implementation instructions for count T.T")
+      case _ => ErrorValue
+    }
+  }
+}
 
-$$\begin{array}{c}
-eval(e_1) \in \{\; Happy,\; VeryHappy\; \}
-\\ \hline
-eval(Not(e_1)) = Cry
-\end{array}\texttt{( eval-not-(very)-happy )}$$
-<br /><br /><br />
+sealed trait Value extends Expr
 
-$$\begin{array}{c}
-eval(e_1) = Cry
-\\ \hline
-eval(Not(e_1)) = VeryHappy
-\end{array}\texttt{( eval-not-cry )}$$
-<br /><br /><br />
+case class ManyExprs(lst: List[Expr]) extends Expr
+case class Plus(e1: Expr, e2: Expr) extends Expr
+case class Not(e: Expr) extends Expr
+case class Count(e1: Expr, e2: Expr) extends Expr
 
-NOTE: The inference rule below states that `![v*]` will actually reduce the list of values by applying the plus operation from left to right. e.g. 
-* `![a, b, c, d]`
-* will evaluate to the value of `((a + b) + c) + d`
+case object Cry extends Value
+case object Happy extends Value
+case object VeryHappy extends Value
+case object Sleepy extends Value
+case object Stun extends Value
+case object ErrorValue extends Value
+case class ManyVals(v: List[Value]) extends Value
+```
 
-$$\begin{array}{c}
-eval(e_1) = ManyVals(v_1,\; \dots,\; v_n)
-,\;\;\;
-\\
-n \geq 2
-,\;\;\;
-\forall\; i \in [2, n]
-,\;\;\;
-v_{acc}^1 = v_1
-,\;\;\;
-\\
-eval(Plus(v_{acc}^{i-1}, v_i)) = v_{acc}^{i}
-\\ \hline
-eval(Not(e_1)) =  v_{acc}^{i}
-\end{array}\texttt{( eval-not-many-values )}$$
-<br /><br /><br />
+## Testing
 
-### E.g.
-* `[ T.T, UwU, `$\circ$.$\circ$ `, -.- zzZ, :) ] + ![ T.T, `$\circ$.$\circ$`, -.- zzZ, :) ]`
+### Unit Tests
 
-    * left is valued, look at the right, reduce the array by the `!` logic
-        * `![ T.T, `$\circ$.$\circ$`, -.- zzZ, :) ]`
-            * T.T + $\circ$.$\circ$ =  $\circ$.$\circ$
-            * $\circ$.$\circ$ +  -.- zzZ = $\circ$.$\circ$ 
-            * $\circ$.$\circ$  + :) = $\circ$.$\circ$ 
-    
-    * intermediate `[ T.T, UwU, `$\circ$.$\circ$ `, -.- zzZ, :) ] + `$\circ$.$\circ$
+We have unit tests for each operational semantic and additional tests for complex expressions. Here's an overview:
 
-        * left is manyVals, right is something I can add validly
-        * T.T + $\circ$.$\circ$ = **$\circ$.$\circ$**
-        * UwU + $\circ$.$\circ$ = **`UwU`**
-        * $\circ$.$\circ$ + $\circ$.$\circ$ = **$\circ$.$\circ$**
-        * -.- zzZ + $\circ$.$\circ$ = **`-.- zzZ`**
-        * :) + $\circ$.$\circ$ = **`:)`**
+- **Value Tests**: Verify that values evaluate to themselves.
+- **ManyExprs Tests**: Verify that lists of expressions evaluate correctly.
+- **Plus Tests**: Verify the various rules for the `Plus` operation.
+- **Not Tests**: Verify the various rules for the `Not` operation.
+- **Count Tests**: Verify that `Count` raises the expected exception.
 
-    * final value `[ `$\circ$.$\circ$ `, UwU, `$\circ$.$\circ$ `, -.- zzZ, :) ]`
-        
-# Language Testing
+### Integration Tests
 
-Your task is as follows:
+We also have integration tests for more complex expressions that combine multiple operations and values.
 
-1. You must translate the abstract syntax provided above to Scala code. 
-2. Then you must implement at least 2 unit tests for each of the operational semantics described (1 if only 1 is possible). Label each test with a comment or a description string as seen in class.
-3. Then you must implement at least 5 integration tests on complex sentences. Label each test with a comment or a description string as seen in class.
-4. You must identify any potential cases of evaluation that the language designers failed to specify (recommend doing this while working on the above tasks)
+### Example Test
 
-### The following were not identified by the language designers
-* **`_YOUR_SOLUTION_HERE`**
+Here's an example unit test:
 
-## STRETCH: Language Implementation
-Only if you have successfully completed the above task (with course staff sign off), should you move on to the following task
+```scala
+test("Plus Happy Cry test") {
+  val expr = Plus(Happy, Cry)
+  val obtained = expr.eval
+  assertEquals(obtained, Cry)
+}
+```
 
-1. Please SAVE off the original test(s) and interpreter(s) in some way so we can see the evolution of your work.
-2. You must translate the abstract syntax provided above to Scala code. 
-3. Run this result against your created tests.
-4. Identify any potential cases of evaluation that the language designers failed to specify (recommend doing this while working on the above tasks). **highlight whatever you find this time around that you did not find the first time through**
+And an example integration test:
 
-## STRETCH: Language Extension
-Only if you have successfully completed the above task (with course staff sign off), should you move on to the following task.
+```scala
+test("Complex test 5") {
+  val expr = Not(Plus(Not(ManyExprs(List(Not(Sleepy), Not(Stun), Plus(Cry, Stun)))), ManyVals(List(Stun, Sleepy))))
+  val obtained = expr.eval
+  assertEquals(obtained, Stun)
+}
+```
 
-* Extend the language with any of the following and provide a complete operational semantic
-    * additional values
-    * additional expressions
-    * additional collections
-    * features such as variables, functions, mutabiles and loops
-    
-* Once you have completed the operational semantics for your change to the language, you may extend the interpreter. Be sure to test this new work. Please SAVE off the original interpreter(s) in some way so we can see the evolution of the interpreter.
+## Potential Evaluation Cases Missed
+
+The current implementation does not handle the following cases:
+
+- The `Count` operation is not implemented and raises an exception.
+- The behavior for deeply nested and mixed operations may need further specification and testing.
+
+## Running the Tests
+
+To run the tests, use the following command:
+
+```sh
+sbt test
+```
+
+This will execute all unit and integration tests and report any failures.
+
+## Conclusion
+
+This project demonstrates a simple language interpreter for emoticons with basic operations and comprehensive testing. The provided implementation and tests ensure that the language behaves as expected according to the specified semantics.

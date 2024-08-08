@@ -1,144 +1,269 @@
-import munit.FunSuite
+class MySuite extends munit.FunSuite {
+  //Basic implementation tests
+  test("Happy test"){
+    val expr = Happy
 
-class MySuite extends FunSuite {
+    val obtained = expr.eval
 
-  test("eval-value") {
-    val obtained = Interpreter.eval(Happy)
-    val expected = Happy
-    assertEquals(obtained, expected)
+    assertEquals(obtained, Happy)
   }
 
-  test("eval-many-exprs") {
-    val obtained = Interpreter.eval(ManyExprs(List(Happy, VeryHappy)))
-    val expected = ManyVals(List(Happy, VeryHappy))
-    assertEquals(obtained, expected)
+  test("Cry test"){
+    val expr = Cry
+
+    val obtained = expr.eval
+
+    assertEquals(obtained, Cry)
   }
 
-  test("eval-many-exprs-error") {
-    val obtained = Interpreter.eval(ManyExprs(List(Happy, Interpreter.ERROR)))
-    val expected = Interpreter.ERROR
-    assertEquals(obtained, expected)
+  test("Very Happy test"){
+    val expr = VeryHappy
+
+    val obtained = expr.eval
+
+    assertEquals(obtained, VeryHappy)
   }
 
-  test("eval-plus-many-values") {
-    val obtained = Interpreter.eval(Plus(ManyVals(List(Happy, VeryHappy)), Happy))
-    val expected = ManyVals(List(Happy, VeryHappy))
-    assertEquals(obtained, expected)
+  test("Sleepy test"){
+    val expr = Sleepy
+
+    val obtained = expr.eval
+
+    assertEquals(obtained, Sleepy)
   }
 
-  test("eval-plus-many-values-error") {
-    val obtained = Interpreter.eval(Plus(ManyVals(List(Happy, Interpreter.ERROR)), Happy))
-    val expected = Interpreter.ERROR
-    assertEquals(obtained, expected)
+  test("Stun test"){
+    val expr = Stun
+
+    val obtained = expr.eval
+
+    assertEquals(obtained, Stun)
   }
 
-  test("eval-stay-uwu") {
-    val obtained = Interpreter.eval(Plus(VeryHappy, Happy))
+  //Many Expr tests
+  test("ManyExpr to ManyVals test"){
+    val expr = ManyExprs(List(Stun, Cry))
+    val obtained = expr.eval
+    assert(obtained == ManyVals(List(Stun, Cry)))
+  }
+
+  test("ManyExpr to ManyVals test 2"){
+    val expr = ManyExprs(List(Happy, Cry, VeryHappy))
+    val obtained = expr.eval
+    assert(obtained == ManyVals(List(Happy, Cry, VeryHappy)))
+  }
+
+  //Plus tests
+  test("Plus Happy Happy test") {
+    val expr = Plus(Happy, Happy)
+
+    val obtained = expr.eval
+    // print(obtained)
+    assertEquals(obtained, Happy)
+  }
+  
+  test("Plus Happy stun test") {
+    val expr = Plus(Happy, Stun)
+
+    val obtained = expr.eval
+    // print(obtained)
+    assertEquals(obtained, Happy)
+  }
+
+  test("Plus Cry VeryHappy test") {
+    val expr = Plus(Cry, VeryHappy)
+
+    val obtained = expr.eval
+    // print(obtained)
+    assertEquals(obtained, VeryHappy)
+  }
+  test("Plus Happy Cry test") {
+    val expr = Plus(Happy, Cry)
+
+    val obtained = expr.eval
+    // print(obtained)
+    assertEquals(obtained, Cry)
+  }
+
+  test("Plus Stun Cry test") {
+    val expr = Plus(Stun, Cry)
+
+    val obtained = expr.eval
+    // print(obtained)
+    assertEquals(obtained, Cry)
+  }
+
+  test("Plus meh test") {
+    val expr = Plus(Stun, Happy)
+
+    val obtained = expr.eval
+    // print(obtained)
+    assertEquals(obtained, Stun)
+  }
+
+  test("Plus Manyvals test") {
+    val expr = Plus(ManyVals(List(Happy, Stun)), Cry)
+
+    val obtained = expr.eval
+    // print(obtained)
+    assertEquals(obtained, ManyVals(List(Cry, Cry)))
+  }
+
+  test("Plus Manyvals test second parameter") {
+    val expr = Plus(Happy, ManyVals(List(VeryHappy, Cry)))
+
+    val obtained = expr.eval
+    // print(obtained)
+    assertEquals(obtained, ManyVals(List(VeryHappy, Cry)))
+  }
+
+  test("Plus Manyvals test second parameter number 2") {
+    val expr = Plus(Stun, ManyVals(List(VeryHappy, Cry)))
+
+    val obtained = expr.eval
+    // print(obtained)
+    assertEquals(obtained, ManyVals(List(VeryHappy, Cry)))
+  }
+
+  test("Plus Manyvals test second parameter number 3") {
+    val expr = Plus(Cry, ManyVals(List(VeryHappy, Stun)))
+
+    val obtained = expr.eval
+    // print(obtained)
+    assertEquals(obtained, ManyVals(List(VeryHappy, Stun)))
+  }
+
+  test("Plus 2 Manyvals test") {
+    val expr = Plus(ManyVals(List(Cry, Happy)), ManyVals(List(VeryHappy, Cry)))
+
+    val exception = intercept[RuntimeException] {
+            expr.eval
+        }
+    assert(exception.getMessage == "Cannot add multivals to multivals")
+    
+  }
+
+  test("Plus 2 Manyvals test 2") {
+    val expr = Plus(ManyVals(List(VeryHappy, Happy)), ManyVals(List(Cry, Sleepy)))
+
+    val exception = intercept[RuntimeException] {
+            expr.eval
+        }
+    assert(exception.getMessage == "Cannot add multivals to multivals")
+  }
+
+
+  //Not Tests
+  test("Not VeryHappy test") {
+    val expr = Not(VeryHappy)
+
+    val obtained = expr.eval
+    print(obtained)
+    assertEquals(obtained, Cry)
+  }
+  test("Not Sleepy test") {
+    val expr = Not(Sleepy)
+
+    val obtained = expr.eval
+    print(obtained)
+    assertEquals(obtained, Stun)
+  }
+
+  test("Not Multival test") {
+    val expr = Not(ManyVals(List(Cry, Stun, Sleepy, Happy)))
+
+    val obtained = expr.eval
+    print(obtained)
+    assertEquals(obtained, Stun)
+  }
+  //Count tests
+  test("Count test 1"){
+    val expr = Count(Cry, Happy)
+
+    val exception = intercept[RuntimeException] {
+            expr.eval
+        }
+    assert(exception.getMessage == "There is no implementation instructions for count T.T")
+  }
+
+  test("Count test 2"){
+   val expr = Count(ManyExprs(List(Cry, Sleepy)), VeryHappy)
+    
+    val exception = intercept[RuntimeException] {
+            expr.eval
+        }
+    assert(exception.getMessage == "There is no implementation instructions for count T.T")
+  }
+
+  //
+  //Plus of manyvals and not manyvals >:)
+  test("Complex test 1") {
+    val expr = Plus(ManyVals(List(Cry, VeryHappy, Stun, Sleepy, Happy)),Not(ManyVals(List(Cry, Stun, Sleepy, Happy))))
+
+    val obtained = expr.eval
+    //print(obtained)
+    assertEquals(obtained, ManyVals(List(Stun, VeryHappy, Stun, Sleepy, Happy)))
+  }
+
+  //failure due to no count implementation
+  //Basically, we hid a count deep in this example, and want to fail because of it
+  test("Complex test 2") {
+    val ManyVals = ManyExprs(List(Cry, VeryHappy, Stun, Sleepy, Happy, Count(Not(Happy), Plus(Happy, Happy))))
+
+    val exception = intercept[RuntimeException] {
+            ManyVals.eval
+        }
+    assert(exception.getMessage == "There is no implementation instructions for count T.T")
+  }
+  // Testing the plus of two nots
+  test("Complex test 3") {
+    val expr = Plus(Not(ManyVals(List(Cry, VeryHappy))), Not(ManyVals(List(Sleepy, Stun))))
     val expected = VeryHappy
-    assertEquals(obtained, expected)
+    assert(expr.eval == expected)
   }
+  test("Complex test 4"){
+    val expr = Not(Plus(ManyExprs(List(Not(VeryHappy), Not(Happy), Plus(Not(Happy), Happy))), Not(Cry)))
+    val obtained = expr.eval
 
-  test("eval-become-uwu") {
-    val obtained = Interpreter.eval(Plus(Happy, VeryHappy))
-    val expected = VeryHappy
-    assertEquals(obtained, expected)
+    assertEquals(obtained, VeryHappy)
   }
+  //What happens if you not a plus? Also throw in manyvals and many expressions and throw like a billion nested things
+  test("Complex test 5"){
+    val expr = Not(Plus(Not(ManyExprs(List(Not(Sleepy), Not(Stun), Plus(Cry, Stun)))), ManyVals(List(Stun, Sleepy))))
+    val obtained = expr.eval
 
-  test("eval-move-on") {
-    val obtained = Interpreter.eval(Plus(Cry, Happy))
-    val expected = Happy
-    assertEquals(obtained, expected)
+    assertEquals(obtained, Stun)
   }
+   //not many exprs, and nested a bunch
+  test("Complex test 6") {
+    val expr = Plus(
+      Not(ManyExprs(List(Plus(Happy, Cry), Not(Plus(Stun, Sleepy)), Plus(Cry, VeryHappy)))), Plus(Not(Happy), ManyExprs(List(Not(Plus(Cry, Sleepy)), Plus(Stun, VeryHappy)))))
+    val expected = ManyVals(List(
+      VeryHappy,   
+      VeryHappy   
+    ))
 
-  test("eval-hard-day") {
-    val obtained = Interpreter.eval(Plus(Happy, Cry))
-    val expected = Cry
-    assertEquals(obtained, expected)
-  }
+    val obtained = expr.eval
 
-  test("eval-meh") {
-    val obtained = Interpreter.eval(Plus(Happy, Stun))
-    val expected = Happy
     assertEquals(obtained, expected)
-  }
+  } 
+  // Deep nesting with alternating Not and Plus
+  test("Complex test 7") {
+    val expr = Not(Plus(
+      Not(Plus(
+        Not(Happy),
+        Plus(
+          ManyVals(List(Cry, Stun)),
+          Not(Sleepy)
+        )
+      )),
+      Not(Plus(Cry, VeryHappy))
+    ))
 
-  test("eval-not-stun") {
-    val obtained = Interpreter.eval(Not(Stun))
-    val expected = Sleepy
-    assertEquals(obtained, expected)
-  }
-
-  test("eval-not-sleepy") {
-    val obtained = Interpreter.eval(Not(Sleepy))
-    val expected = Stun
-    assertEquals(obtained, expected)
-  }
-
-  test("eval-not-(very)-happy") {
-    val obtained = Interpreter.eval(Not(Happy))
-    val expected = Cry
-    assertEquals(obtained, expected)
-  }
-
-  test("eval-not-cry") {
-    val obtained = Interpreter.eval(Not(Cry))
-    val expected = VeryHappy
-    assertEquals(obtained, expected)
-  }
-
-  test("eval-not-many-values") {
-    val obtained = Interpreter.eval(Not(ManyVals(List(Happy, VeryHappy))))
-    val expected = Cry
-    assertEquals(obtained, expected)
-  }
-
-  test("integration-test-1") {
-    val obtained = Interpreter.eval(Plus(ManyVals(List(Happy, VeryHappy)), Not(ManyVals(List(Cry, Stun)))))
-    val expected = ManyVals(List(Happy, VeryHappy))
-    assertEquals(obtained, expected)
-  }
-
-  test("integration-test-2") {
-    val obtained = Interpreter.eval(Plus(Happy, Not(ManyVals(List(Happy, Cry)))))
-    val expected = Cry
-    assertEquals(obtained, expected)
-  }
-
-  test("integration-test-3") {
-    val obtained = Interpreter.eval(Not(Plus(ManyVals(List(Happy, Cry)), VeryHappy)))
-    val expected = VeryHappy
-    assertEquals(obtained, expected)
-  }
-
-  test("integration-test-4") {
-    val obtained = Interpreter.eval(Not(Plus(Cry, VeryHappy)))
-    val expected = VeryHappy
-    assertEquals(obtained, expected)
-  }
-
-  test("integration-test-5") {
-    val obtained = Interpreter.eval(Plus(Not(Happy), VeryHappy))
-    val expected = VeryHappy
-    assertEquals(obtained, expected)
-  }
-
-  test("empty-many-exprs") {
-    val obtained = Interpreter.eval(ManyExprs(Nil))
-    val expected = ManyVals(Nil)
-    assertEquals(obtained, expected)
-  }
-
-  test("nested-expressions") {
-    val expr = Plus(Not(Plus(Happy, Cry)), ManyVals(List(VeryHappy, Stun)))
-    val obtained = Interpreter.eval(expr)
-    val expected = ManyVals(List(Cry, Stun))
-    assertEquals(obtained, expected)
-  }
-
-  test("combining-multiple-operations") {
-    val expr = Not(Plus(Count(ManyVals(List(Happy, Cry, Happy)), Not(Sleepy)), VeryHappy))
-    val obtained = Interpreter.eval(expr)
-    val expected = Cry
-    assertEquals(obtained, expected)
+    val obtained = expr.eval
+    println(s"Obtained: $obtained")
+    assertEquals(obtained, VeryHappy)
   }
 }
+
+
