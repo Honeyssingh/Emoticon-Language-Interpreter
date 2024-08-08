@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-### README.md
-=======
->>>>>>> refs/remotes/origin/main
 
 # Emoticon Language Interpreter
 
@@ -218,4 +214,3 @@ Only if you have successfully completed the above task (with course staff sign o
     * features such as variables, functions, mutabiles and loops
     
 * Once you have completed the operational semantics for your change to the language, you may extend the interpreter. Be sure to test this new work. Please SAVE off the original interpreter(s) in some way so we can see the evolution of the interpreter.
->>>>>>> refs/remotes/origin/main
