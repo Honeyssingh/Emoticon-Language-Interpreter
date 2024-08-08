@@ -1,5 +1,3 @@
-# Final Practicum CSCI 3155 Summer 2024 (language testing)
-Welcome to the CSCI 3155 Summer 2024 final practicum. In this exercise you will work on teams to design, develop and test a small domain specific language (DSL) to the specification provided. Throughout this practicum, if you have questions, you are actively encouraged to ask the course staff. The document below lists "**`minimum`**" features for your language. You are of course welcome to create a more complex language than what is described below.
 
 ## Language Design
 Your language design team has defined an operational semantic to the following specification. Your task is to review the specification and author extensive test for the intended semantic.
@@ -247,7 +245,7 @@ Only if you have successfully completed the above task (with course staff sign o
 2. You must translate the abstract syntax provided above to Scala code. 
 3. Run this result against your created tests.
 4. Identify any potential cases of evaluation that the language designers failed to specify (recommend doing this while working on the above tasks). **highlight whatever you find this time around that you did not find the first time through**
-
+a
 ## STRETCH: Language Extension
 Only if you have successfully completed the above task (with course staff sign off), should you move on to the following task.
 
