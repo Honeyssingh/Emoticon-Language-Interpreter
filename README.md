@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 ### README.md
+=======
+>>>>>>> refs/remotes/origin/main
 
 # Emoticon Language Interpreter
 
@@ -168,6 +171,7 @@ test("Plus Happy Cry test") {
 }
 ```
 
+<<<<<<< HEAD
 And an example integration test:
 
 ```scala
@@ -198,3 +202,20 @@ This will execute all unit and integration tests and report any failures.
 ## Conclusion
 
 This project demonstrates a simple language interpreter for emoticons with basic operations and comprehensive testing. The provided implementation and tests ensure that the language behaves as expected according to the specified semantics.
+=======
+1. Please SAVE off the original test(s) and interpreter(s) in some way so we can see the evolution of your work.
+2. You must translate the abstract syntax provided above to Scala code. 
+3. Run this result against your created tests.
+4. Identify any potential cases of evaluation that the language designers failed to specify (recommend doing this while working on the above tasks). **highlight whatever you find this time around that you did not find the first time through**
+a
+## STRETCH: Language Extension
+Only if you have successfully completed the above task (with course staff sign off), should you move on to the following task.
+
+* Extend the language with any of the following and provide a complete operational semantic
+    * additional values
+    * additional expressions
+    * additional collections
+    * features such as variables, functions, mutabiles and loops
+    
+* Once you have completed the operational semantics for your change to the language, you may extend the interpreter. Be sure to test this new work. Please SAVE off the original interpreter(s) in some way so we can see the evolution of the interpreter.
+>>>>>>> refs/remotes/origin/main
